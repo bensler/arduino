@@ -1,0 +1,1 @@
+<img src="./poti_servo.png">
