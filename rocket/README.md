@@ -6,7 +6,7 @@ Potential applications are
 * deploy a parachute at the highest point of the flight path to make the impact less voilent and save the payload 
 
 As a preliminary work some experiments have to be done
-* log data from a inertial sensor to an SD card
 * <a href="poti_servo">controlling a servo motor</a>
+* log data from a inertial sensor to an SD card
 * let LEDs reflect certain sensor readings
 * make everything run on batteries
