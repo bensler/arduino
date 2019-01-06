@@ -26,7 +26,8 @@ void setup() {
 
 void loop() {
   for (int i = 0; i < NUMPIXELS; i++) {
-    pixels.setPixelColor(i, (((i % patternWidth) == highlighted) ? highlight : pixels.Color(backgroundSaturation, backgroundSaturation, 0))); 
+    uint32_t background = pixels.Color(backgroundSaturation, backgroundSaturation, 0);
+    pixels.setPixelColor(i, (((i % patternWidth) == highlighted) ? highlight : background));
   }
   pixels.show(); // This sends the updated pixel color to the hardware.
 
