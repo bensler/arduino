@@ -59,7 +59,7 @@ void showNumber(int number, CRGB brightColor, CRGB dimColor) {
 }
 
 int calcDimFactor(float analogRead, int maxValue) {
-  return round((analogRead / (float) maxValue) * (float)10);
+  return round((analogRead / (float) maxValue) * (float)9) + 1;
 }
 
 void loop() {
