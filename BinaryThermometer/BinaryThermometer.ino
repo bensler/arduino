@@ -27,26 +27,31 @@ void setup() {
   Serial.println(sensors.getDS18Count());
 }
 
-void showNumber(int number, int dimFactor) {
+void showTemperature(float celsius, int dimFactor) {
+  int roundedCelsius = round(celsius);
   CRGB brightRed  = CRGB(25 * dimFactor, 0,  0);
   CRGB dimRed     = CRGB( dimFactor, 0,  0);
   CRGB brightBlue = CRGB( 0, 0, 25 * dimFactor);
   CRGB dimBlue    = CRGB( 0, 0,  dimFactor);
   CRGB brightColor;
   CRGB dimColor;
-  
-  if (number < 0) {
+
+  if (celsius <= 0) {
     brightColor = brightBlue;
     dimColor = dimBlue;
-    number = -1 * number;
-  } else {
+    roundedCelsius = -1 * roundedCelsius;
+  } else { // number > 0
     brightColor = brightRed;
     dimColor = dimRed;
   }
+  showNumber(roundedCelsius, brightColor, dimColor);
+}
+
+void showNumber(int number, CRGB brightColor, CRGB dimColor) {
   for (int i = 0; i < NUM_LEDS; i++) {
     int lastBit = number % 2;
     int index = inverted ? (NUM_LEDS - i - 1) : i;
-    
+
     leds[index] = (lastBit ? brightColor : dimColor);
     number = number >> 1;
   }
@@ -58,22 +63,13 @@ int calcDimFactor(float analogRead, int maxValue) {
 }
 
 void loop() {
-  float celsius = sensors.getTempCByIndex(0);
-  int roundedCelsius;
-
   int poti = analogRead(A0);
   int dimFactor = calcDimFactor(poti, 1024);
   Serial.println(dimFactor);
-  
+
   sensors.requestTemperatures();
-  roundedCelsius = round(celsius);
-  showNumber(roundedCelsius, dimFactor);
+  showTemperature(sensors.getTempCByIndex(0), dimFactor);
 
-  Serial.print(celsius);
+  Serial.print(sensors.getTempCByIndex(0));
   Serial.println("°C");
-
-/*  counter++;
-  if (counter > MAX_NUMBER) {
-    counter = -1 * MAX_NUMBER;
-  }*/
 }
