@@ -23,8 +23,6 @@ void setup() {
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
   Serial.begin(9600);       // use the serial port
   sensors.begin();
-
-  Serial.println(sensors.getDS18Count());
 }
 
 void showTemperature(float celsius, int dimFactor) {
@@ -59,12 +57,15 @@ void showNumber(int number, CRGB brightColor, CRGB dimColor) {
 }
 
 int calcDimFactor(float analogRead, int maxValue) {
-  return round((analogRead / (float) maxValue) * (float)9) + 1;
+  return round((analogRead / (float) maxValue) * (float) 9) + 1;
 }
 
 void loop() {
+  Serial.println();
+
   int poti = analogRead(A0);
   int dimFactor = calcDimFactor(poti, 1024);
+  Serial.print("Dim factor: ");
   Serial.println(dimFactor);
 
   sensors.requestTemperatures();
