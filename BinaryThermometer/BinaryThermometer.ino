@@ -4,6 +4,7 @@
 #include <DallasTemperature.h>
 
 #define LED_PIN     7
+#define BUTTON_PIN  2
 #define NUM_LEDS    7
 
 const int inverted = 1;
@@ -18,11 +19,14 @@ OneWire oneWire(ONE_WIRE_BUS);
 
 DallasTemperature sensors(&oneWire);
 
+int dimFactor = 1;
+
 // the setup function runs once when you press reset or power the board
 void setup() {
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
   Serial.begin(9600);       // use the serial port
   sensors.begin();
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
 }
 
 void showTemperature(float celsius, int dimFactor) {
@@ -56,15 +60,18 @@ void showNumber(int number, CRGB brightColor, CRGB dimColor) {
   FastLED.show();
 }
 
-int calcDimFactor(float analogRead, int maxValue) {
-  return round((analogRead / (float) maxValue) * (float) 9) + 1;
+int calcDimFactor(int buttonState) {
+  if (buttonState == 1) {
+    dimFactor = (dimFactor >= NUM_LEDS) ? 1 : (dimFactor + 1);
+  }
+  return dimFactor;
 }
 
 void loop() {
   Serial.println();
 
   int poti = analogRead(A0);
-  int dimFactor = calcDimFactor(poti, 1024);
+  dimFactor = calcDimFactor(digitalRead(BUTTON_PIN));
   Serial.print("Dim factor: ");
   Serial.println(dimFactor);
 
@@ -73,4 +80,5 @@ void loop() {
 
   Serial.print(sensors.getTempCByIndex(0));
   Serial.println("°C");
+
 }

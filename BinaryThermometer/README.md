@@ -6,8 +6,8 @@ more readable (or readable at all) in darkness. There are 7 LEDs leading to a ra
 to 127°C which is totally sufficient for household applications. The temperature sensor is rated
 for even higher temperatures but nevertheless recommended not to be used above 100°C.
 
-A potentiometer allows adjusting LED brightness via analog input to make it fitting into ambient
-illumination.
+A push button allows adjusting LED brightness to make it fitting into ambient
+illumination. Brightness level increases with every push up to 7 and drops to 1 after that.
 
 Everything is controlled by an Arduino Nano brain. YEAH!
 
