@@ -24,17 +24,18 @@ DallasTemperature sensors(&oneWire);
 
 const int MAX_DIM  = NUM_LEDS + 1;
 const int DIM_STEP = 256 / MAX_DIM;
-int dimFactor = 1;
+int brightness = 1;
+// to detect if button is newly pressed -> don't alter brightness, just display it
+int lastButtonState = 0;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
-  Serial.begin(9600);       // use the serial port
   sensors.begin();
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 }
 
-void showTemperature(float celsius, int dimFactor) {
+void showTemperature(float celsius, int brightness) {
   int roundedCelsius = round(celsius);
   CRGB baseColor;
 
@@ -44,14 +45,12 @@ void showTemperature(float celsius, int dimFactor) {
   } else { // number > 0
     baseColor = COLOR_RED;
   }
-  showNumber(
-    roundedCelsius,
-    CRGB(baseColor).fadeToBlackBy((MAX_DIM - dimFactor) * DIM_STEP),
-    CRGB(baseColor).fadeToBlackBy(255 - dimFactor)
+  showNumberBinary(
+    roundedCelsius, getBrightColor(baseColor), getDimColor(baseColor)
   );
 }
 
-void showNumber(int number, CRGB brightColor, CRGB dimColor) {
+void showNumberBinary(int number, CRGB brightColor, CRGB dimColor) {
   for (int i = 0; i < NUM_LEDS; i++) {
     int lastBit = number % 2;
     int index = inverted ? (NUM_LEDS - i - 1) : i;
@@ -59,24 +58,39 @@ void showNumber(int number, CRGB brightColor, CRGB dimColor) {
     leds[index] = (lastBit ? brightColor : dimColor);
     number = number >> 1;
   }
-  FastLED.show();
 }
 
-int calcDimFactor(int buttonState) {
-  if (buttonState == 1) {
-    dimFactor = (dimFactor >= NUM_LEDS) ? 1 : (dimFactor + 1);
+void showNumberBar(int number, CRGB brightColor, CRGB dimColor) {
+  for (int i = 0; i < NUM_LEDS; i++) {
+    int index = inverted ? (NUM_LEDS - i - 1) : i;
+
+    leds[index] = ((i < number) ? brightColor : dimColor);
   }
-  return dimFactor;
+}
+
+CRGB getBrightColor(CRGB baseColor) {
+  return CRGB(baseColor).fadeToBlackBy((MAX_DIM - brightness) * DIM_STEP);
+}
+
+CRGB getDimColor(CRGB baseColor) {
+  return CRGB(baseColor).fadeToBlackBy(255 - brightness);
 }
 
 void loop() {
-  Serial.println();
+  int buttonState = digitalRead(BUTTON_PIN);
+  if (buttonState == 1) {
+    if (lastButtonState == 1) {
+      brightness = (brightness >= NUM_LEDS) ? 1 : (brightness + 1);
+    }
+    showNumberBar(
+      brightness, getBrightColor(COLOR_GREEN), getDimColor(COLOR_GREEN)
+    );
+  } else {
+    sensors.requestTemperatures();
+    showTemperature(sensors.getTempCByIndex(0), brightness);
+  }
+  lastButtonState = buttonState;
 
-  calcDimFactor(digitalRead(BUTTON_PIN));
-  sensors.requestTemperatures();
-  showTemperature(sensors.getTempCByIndex(0), dimFactor);
-
-  Serial.print(sensors.getTempCByIndex(0));
-  Serial.println("°C");
-
+  FastLED.show();
+  delay(1000);
 }
