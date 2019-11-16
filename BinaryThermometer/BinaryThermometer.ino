@@ -11,6 +11,9 @@ const int inverted = 1;
 
 int MAX_NUMBER = (1 << NUM_LEDS) - 1;
 
+CRGB COLOR_RED   = CRGB(255,   0,   0);
+CRGB COLOR_BLUE  = CRGB(  0,   0, 255);
+CRGB COLOR_GREEN = CRGB(  0, 255,   0);
 CRGB leds[NUM_LEDS];
 
 #define ONE_WIRE_BUS 5
@@ -19,6 +22,8 @@ OneWire oneWire(ONE_WIRE_BUS);
 
 DallasTemperature sensors(&oneWire);
 
+const int MAX_DIM  = NUM_LEDS + 1;
+const int DIM_STEP = 256 / MAX_DIM;
 int dimFactor = 1;
 
 // the setup function runs once when you press reset or power the board
@@ -31,22 +36,19 @@ void setup() {
 
 void showTemperature(float celsius, int dimFactor) {
   int roundedCelsius = round(celsius);
-  CRGB brightRed  = CRGB(25 * dimFactor, 0,  0);
-  CRGB dimRed     = CRGB( dimFactor, 0,  0);
-  CRGB brightBlue = CRGB( 0, 0, 25 * dimFactor);
-  CRGB dimBlue    = CRGB( 0, 0,  dimFactor);
-  CRGB brightColor;
-  CRGB dimColor;
+  CRGB baseColor;
 
   if (celsius <= 0) {
-    brightColor = brightBlue;
-    dimColor = dimBlue;
+    baseColor = COLOR_BLUE;
     roundedCelsius = -1 * roundedCelsius;
   } else { // number > 0
-    brightColor = brightRed;
-    dimColor = dimRed;
+    baseColor = COLOR_RED;
   }
-  showNumber(roundedCelsius, brightColor, dimColor);
+  showNumber(
+    roundedCelsius,
+    CRGB(baseColor).fadeToBlackBy((MAX_DIM - dimFactor) * DIM_STEP),
+    CRGB(baseColor).fadeToBlackBy(255 - dimFactor)
+  );
 }
 
 void showNumber(int number, CRGB brightColor, CRGB dimColor) {
@@ -70,11 +72,7 @@ int calcDimFactor(int buttonState) {
 void loop() {
   Serial.println();
 
-  int poti = analogRead(A0);
-  dimFactor = calcDimFactor(digitalRead(BUTTON_PIN));
-  Serial.print("Dim factor: ");
-  Serial.println(dimFactor);
-
+  calcDimFactor(digitalRead(BUTTON_PIN));
   sensors.requestTemperatures();
   showTemperature(sensors.getTempCByIndex(0), dimFactor);
 
